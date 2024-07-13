@@ -42,13 +42,13 @@ class ApiCall {
   Future getCurrentLocationWeather(
       {required String latitude, required String longitude}) async {
     final url =
-        '${ApiRoute.baseUrl}${ApiRoute.forecastWeather}?key=$apiKey&q=$latitude,$longitude&aqi=yes';
+        '${ApiRoute.baseUrl}${ApiRoute.forecastWeather}?key=$apiKey&q=$latitude,$longitude&aqi=yes&astro';
     return await getReq(url: url);
   }
 
   Future getSearchLocationWeather({required String location}) async {
     final url =
-        '${ApiRoute.baseUrl}${ApiRoute.forecastWeather}?key=$apiKey&q=$location&aqi=yes';
+        '${ApiRoute.baseUrl}${ApiRoute.forecastWeather}?key=$apiKey&q=$location&aqi=yes&astro';
     return await getReq(url: url);
   }
 }

@@ -1,10 +1,7 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -34,7 +31,9 @@ class _HomePageState extends State<HomePage> {
   // API Data
   ApiCall api = ApiCall();
   Map<String, dynamic> locationData = {};
-  Map<String, dynamic> tempData = {};
+  Map<String, dynamic> currentTempData = {};
+  Map<String, dynamic> forecastData = {};
+  List<Map<String, dynamic>> forcecastDayData = [];
 
   void getLocationStatus() async {
     var status = await Permission.location.status;
@@ -58,7 +57,8 @@ class _HomePageState extends State<HomePage> {
   void setLocationAndTempData() async {
     setState(() {
       locationData = appController.weatherData?['location'] ?? {};
-      tempData = appController.weatherData?['current'] ?? {};
+      currentTempData = appController.weatherData?['current'] ?? {};
+      forecastData = appController.weatherData?['forecast'] ?? {};
       loading = false;
     });
   }
@@ -84,9 +84,10 @@ class _HomePageState extends State<HomePage> {
       isSearching = false;
     });
     final res = await api.getSearchLocationWeather(location: location);
+    appController.weatherData = res;
+
+    setLocationAndTempData();
     setState(() {
-      locationData = res?['location'] ?? {};
-      tempData = res?['current'] ?? {};
       loading = false;
     });
     searchController.clear();
@@ -210,18 +211,18 @@ class _HomePageState extends State<HomePage> {
                       height: height * 0.105,
                     ),
                     SvgPicture.string(
-                      AppSvg.cloudIcon,
+                      AppSvg.sunIcon,
                       height: 65.0,
                     ),
                     // Image.network( //TODO: Change the image
-                    //   'https:${tempData['condition']['icon'] ?? "//cdn.weatherapi.com/weather/64x64/night/113.png"}',
+                    //   'https:${currentTempData['condition']['icon'] ?? "//cdn.weatherapi.com/weather/64x64/night/113.png"}',
                     //   height: 65.0,
                     // ),
                     SizedBox(
                       height: height * 0.005,
                     ),
                     Text(
-                      tempData['condition']?['text'] ?? "Clear",
+                      currentTempData['condition']?['text'] ?? "Clear",
                       style: const TextStyle(
                         color: AppColors.textColor,
                         letterSpacing: 1.5,
@@ -231,7 +232,7 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '${tempData['temp_c']?.floor() ?? 27}',
+                          '${currentTempData['temp_c']?.floor() ?? 27}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 120.0,
@@ -266,16 +267,16 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         children: [
                           Text(
-                            'Feels like ${tempData['feelslike_c'] ?? "25"}°C',
+                            'Feels like ${currentTempData['feelslike_c'] ?? "25"}°C',
                             style: const TextStyle(
                               color: AppColors.textColor,
                             ),
                           ),
                           const Spacer(),
                           Text(
-                            tempData['is_day'] == 0
-                                ? "Sunset 06:35 PM" // TODO: Change the time
-                                : "Sunrise 05:35 AM", //TODO: Change the time
+                            currentTempData['is_day'] == 1
+                                ? "Sunset ${appController.weatherData?['forecast']?['forecastday']?[0]?['astro']?['sunset'] ?? "06:35 PM"}"
+                                : "Sunrise ${appController.weatherData?['forecast']?['forecastday']?[0]?['astro']?['sunrise'] ?? "05:35 AM"}",
                             style: const TextStyle(
                               color: AppColors.textColor,
                             ),
@@ -336,7 +337,7 @@ class _HomePageState extends State<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Wind ${tempData['wind_kph'] ?? "5"} km/h',
+                            'Wind ${currentTempData['wind_kph'] ?? "5"} km/h',
                             style: const TextStyle(
                               color: AppColors.textColor,
                             ),
@@ -348,7 +349,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           Text(
-                            'Humidity ${tempData['humidity'] ?? '60'}%',
+                            'Humidity ${currentTempData['humidity'] ?? '60'}%',
                             style: const TextStyle(
                               color: AppColors.textColor,
                             ),
@@ -360,7 +361,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           Text(
-                            'Air Quality ${tempData['air_quality']?['pm2_5'] ?? 42}',
+                            'Air Quality ${currentTempData['air_quality']?['pm2_5'] ?? 42}',
                             style: const TextStyle(
                               color: AppColors.textColor,
                             ),
